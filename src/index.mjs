@@ -68,14 +68,27 @@ const getUserDetailsById=(request,response,next)=>{
 app.get("/api/users/:id",getUserDetailsById,(request,response)=>{
    const {parsedId}=request;
    const findUser=mockUsers.find((user)=>user.id==parsedId);
+   if(!findUser) return response.status(404).send({Error:"User doesn't exits"});
    return response.status(200).send(findUser);
 });
-app.put("/api/users/:id",(request,response,)=>{
-   const {body,params:{id}}=request;
+
+const putUserDetailsById=(request,response,next)=>{
+   const {params:{id}}=request;
    const parsedId=parseInt(id);
-   if(isNaN(parsedId)) return response.sendStatus(400);
+   if(isNaN(parsedId)) return response.status(404).send({Error:"Bad Request and Invalid Id"});
    const findUserIndex=mockUsers.findIndex((user)=>user.id===parsedId);
-   if(findUserIndex===-1) return response.sendStatus(404);
+   if(findUserIndex===-1) return response.status(404).send({Error:"User doesn't exits"});
+   request.findUserIndex=findUserIndex;
+   next();
+}
+
+app.put("/api/users/:id",putUserDetailsById,(request,response,)=>{
+   const {body,findUserIndex}=request;
+   // const {body,params:{id}}=request;
+   // const parsedId=parseInt(id);
+   // if(isNaN(parsedId)) return response.sendStatus(400);
+   // const findUserIndex=mockUsers.findIndex((user)=>user.id===parsedId);
+   // if(findUserIndex===-1) return response.sendStatus(404);
    mockUsers[findUserIndex]={id:mockUsers[findUserIndex].id,...body};
    return response.sendStatus(200);
 });
@@ -101,14 +114,21 @@ app.patch("/api/users/:id",patchUserDetailsById,(request,response)=>{
 });
 
 const deleteUserDetailsById=(request,response,next)=>{
-   
-}
-app.delete("/api/users/:id",(request,response)=>{
    const {params:{id}}=request;
    const parsedId=parseInt(id);
-   if(isNaN(parsedId)) return response.sendStatus(400);
+   if(isNaN(parsedId)) return response.status(404).send({Error:"Bad Request and Invalid Id"});
    const findUserIndex=mockUsers.findIndex((user)=>user.id===parsedId);
-   if(findUserIndex===-1) return response.status(404).send({message:"User doesn't exits"});
+   if(findUserIndex===-1) return response.status(404).send({Error:"User doesn't exits"});
+   request.findUserIndex=findUserIndex;
+   next();
+}
+app.delete("/api/users/:id",deleteUserDetailsById,(request,response)=>{
+   const {findUserIndex}=request;
+   // const {params:{id}}=request;
+   // const parsedId=parseInt(id);
+   // if(isNaN(parsedId)) return response.sendStatus(400);
+   // const findUserIndex=mockUsers.findIndex((user)=>user.id===parsedId);
+   // if(findUserIndex===-1) return response.status(404).send({message:"User doesn't exits"});
    mockUsers.splice(findUserIndex,1);
    return response.sendStatus(200);
 })
